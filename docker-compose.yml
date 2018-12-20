@@ -1,0 +1,49 @@
+version: '2'
+services:
+    cluster-test-web:
+        build: docker/web
+        container_name: cluster-test-web
+        ports:
+            - 80:80
+        links:
+            - cluster-test-app:php
+        volumes_from:
+            - cluster-test-app
+        networks:
+            app_net:
+
+    cluster-test-app:
+        build: docker/app
+        container_name: cluster-test-app
+        volumes:
+            - ./:/var/www/html
+        links:
+            - cluster-test-redis:redis
+        networks:
+            app_net:
+
+    cluster-test-redis:
+        image: redis:latest
+        container_name: cluster-test-redis
+        volumes:
+            - ./docker/redis/:/data/conf
+        command: bash -c "/bin/bash /data/conf/redis.sh && while true; do echo 1; sleep 1; done"
+        ports:
+            - 7000:7000
+            - 7001:7001
+            - 7002:7002
+            - 7003:7003
+            - 7004:7004
+            - 7005:7005
+        networks:
+            app_net:
+                ipv4_address: 172.16.239.10
+
+networks:
+    app_net:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.16.239.0/24
+                  gateway: 172.16.239.1

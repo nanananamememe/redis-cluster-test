@@ -1,0 +1,2 @@
+docker/redis/nodes*conf
+docker/redis/*.log
